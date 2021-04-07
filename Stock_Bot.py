@@ -4,6 +4,8 @@ import datetime
 from datetime import datetime
 from discord.ext import commands
 from dateutil import tz
+from keep_alive import keep_alive
+import os
     
 client = commands.Bot(command_prefix= "$")# was man vor einen command schreiben muss
 client.remove_command("help")
@@ -15,12 +17,13 @@ async def on_ready():
 @client.group(invoke_without_command=True)
 async def help(message): 
   embed = discord.Embed(title="Information", colour=discord.Colour(0x441c20), description="Für weitere Informationen über ein Command '$help <command>'\nVor jeden Command ein: '$' Bei allen(ausser top) Commands sollte nach dem Command noche das Symbol(z.B. TSLA für Tesla eingegeben werden.)", timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
-  embed.add_field(name="info", value="infos über das Unternehmen")
-  embed.add_field(name="all", value="Alles")
-  embed.add_field(name="summary", value="Eine Zusammenfassung der Tätigkeiten des Unternehmens")
-  embed.add_field(name="price", value="Der Aktuelle Aktienprice")
-  embed.add_field(name="icon", value="Ein Bild des Frimenlog")
-  embed.add_field(name='top',value='Einer Liste der Aktienpreise von Topaktien')
+  embed.add_field(name=":information_source: info", value="infos über das Unternehmen")
+  embed.add_field(name=":mountain_snow:  all", value="Alles")
+  embed.add_field(name=":game_die:  summary", value="Eine Zusammenfassung der Tätigkeiten des Unternehmens")
+  embed.add_field(name=":chart_with_upwards_trend: price", value="Der Aktuelle Aktienprice")
+  embed.add_field(name=":8ball:  icon", value="Ein Bild des Firmenlogo")
+  embed.add_field(name=':top: top',value='Einer Liste der Aktienpreise von Topaktien')
+  embed.add_field(name=':symbols: symbol',value='Link mit einer Liste von Symbols')
   await message.send(embed=embed)
 
 @help.command()
@@ -36,8 +39,13 @@ async def all(message):
     await message.send(embed=embed)
 @help.command()
 async def summary(message):
-    embed = discord.Embed(title="summary", colour=discord.Colour(0xffec00), description="Eine Beschreibung der Tätikeiten des unternehmens", timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
+    embed = discord.Embed(title="summary", colour=discord.Colour(0xffec00), description="Eine Beschreibung der Tätikeiten des Unternehmens", timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
     embed.add_field(name="**Syntax**", value="$summary <Symbol>")
+    await message.send(embed=embed)
+@help.command()
+async def symbol(message):
+    embed = discord.Embed(title="symbol", colour=discord.Colour(0xffec00), description="Liste mit Symbols von Firmen", timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
+    embed.add_field(name="**Syntax**", value="$symbol <Symbol>")
     await message.send(embed=embed)
 @help.command()
 async def price(message):
@@ -86,11 +94,16 @@ async def _top(message):
     embed.add_field(name= 'Alphabet:',value='%s $'%google)
     await message.send(embed=embed)
 
+@client.command(aliases=["symbol"])
+async def _symbol(message):
+    embed = discord.Embed(title='Symbols', colour=discord.Colour(0x3e9c35), timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
+    embed.add_field(name= 'Branche des Unternehmens:',value="Eine Liste von Firmen Symbols finden Sie [hier](https://pkgstore.datahub.io/core/nasdaq-listings/nasdaq-listed-symbols_csv/data/595a1f263719c09a8a0b4a64f17112c6/nasdaq-listed-symbols_csv.csv)")
+    await message.send(embed=embed)
 
 @client.command(aliases=["info"])
 async def _info(message,*,tickersymbol):
     tickerdata=yf.Ticker(tickersymbol)
-    tickerinfo=tickerdata.info
+    tickerinfo=tickerdata.infos
     embed = discord.Embed(title=tickerinfo['shortName'], colour=discord.Colour(0x3e9c35), timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
     embed.add_field(name= 'Branche des unternehmens:',value=tickerinfo['sector'])
     embed.add_field(name= 'Anzahl Vollzeit Mitarbeiter:',value=tickerinfo['fullTimeEmployees'])
@@ -104,8 +117,8 @@ async def _all(message,*,tickersymbol):
     tickerdata=yf.Ticker(tickersymbol)
     tickerinfo=tickerdata.info
     embed = discord.Embed(title=tickerinfo['shortName'], colour=discord.Colour(0x3e9c35), timestamp=datetime.now(tz=tz.gettz("europe/berlin")))
-    embed.add_field(name= 'Price der Aktie:',value="%s$"%tickerinfo['regularMarketPrice'])
-    embed.add_field(name= 'Branche des unternehmens:',value=tickerinfo['sector'])
+    embed.add_field(name= 'Preis der Aktie:',value="%s$"%tickerinfo['regularMarketPrice'])
+    embed.add_field(name= 'Branche des Unternehmens:',value=tickerinfo['sector'])
     embed.add_field(name= 'Anzahl Vollzeit Mitarbeiter:',value=tickerinfo['fullTimeEmployees'])
     embed.add_field(name= 'Land:',value=tickerinfo['country'])
     embed.add_field(name= 'Webseite:',value=tickerinfo['website'])
@@ -138,4 +151,4 @@ async def _summary(message,*,tickersymbol):
     embed.set_thumbnail(url=tickerinfo['logo_url'])
     await message.send(embed=embed)
 
-client.run('ODI4ODk5MDgwMjYwMDI2NDIw.YGwSbA.RKxlZj8SF9sXrMtrpXF1lB2hB1Q')
+client.run(os.getenv('TOKEN'))
